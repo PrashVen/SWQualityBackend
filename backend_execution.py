@@ -1,29 +1,63 @@
-# Import the json module to be able to use json.dumps()
 import json
-# Import all necessary functions and shared data containers from the separate files
-from ingestion_api import receive_webhook, RAW_QUEUE, RAW_CI_DATA
+from flask import Flask # Needed for the test_request_context
+
+# Import all necessary functions and shared data containers
+from ingestion_service import RAW_QUEUE, handle_webhook
 from normalization_worker import run_normalization, RAW_DB
 from aggregation_service import calculate_metrics, serve_dashboard_metric, SUMMARY_DB
 
+def load_raw_data(file_path='ci_run_data.json'):
+    """Loads the input data from the dedicated JSON file."""
+    try:
+        with open(file_path, 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        print(f"ERROR: Sample data file not found at {file_path}. Cannot proceed.")
+        return None
+
+def simulate_http_post(api_handler, data):
+    """
+    Simulates the CI/CD webhook POST request by running the Flask handler 
+    function in a controlled test context.
+    """
+    
+    print("\n--- 1. SIMULATING CI POST TO INGESTION API ENDPOINT ---")
+    
+    # We initialize a minimal Flask application context
+    app = Flask(__name__)
+    
+    # Use Flask's testing utility to simulate an incoming HTTP POST request
+    with app.test_request_context(json=data, method='POST'):
+        # Call the actual route handler function
+        response_obj, status_code = api_handler() 
+        
+        # Flask's response object needs to be converted back to JSON data for inspection
+        response_data = json.loads(response_obj.get_data(as_text=True))
+        
+        return response_data, status_code
+
 if __name__ == "__main__":
     print("=====================================================================")
-    print("🚀 STARTING DECOUPLED BACKEND ARCHITECTURE EXECUTION 🚀")
+    print("🚀 STARTING DECOUPLED BACKEND ARCHITECTURE EXECUTION (API SIMULATION) 🚀")
     print("=====================================================================")
     
-    # 1. Simulate API POST (Ingestion) - Resilience Test (Problem F)
-    # The queue is initialized in ingestion_api.py with a dummy to force the retry test.
-    receive_webhook(RAW_CI_DATA)
+    # LOAD THE EXTERNAL DATA SOURCE
+    RAW_CI_DATA = load_raw_data()
+    if not RAW_CI_DATA:
+        exit(1) # Stop execution if data is missing
 
-    # Transfer data from ingestion_api to normalization_worker's shared raw queue/data
-    
+    # 1. Simulate API POST (Ingestion) - Resilience Test (Problem F)
+    api_response, status_code = simulate_http_post(handle_webhook, RAW_CI_DATA)
+    print(f"CI System received API Response Code: {status_code}, Message: {api_response['message']}")
+
     # 2. Normalization Worker consumes the queue (Problem D)
     normalized_data = run_normalization(RAW_QUEUE)
     
-    # Transfer the resulting normalized data to the aggregation service's RAW_DB
+    # 3. Aggregation Service runs calculation (Problem B)
     if normalized_data:
+        # Update shared DBs for the next service
         RAW_DB[normalized_data['build_id']] = normalized_data
         
-        # 3. Aggregation Service runs calculation (Problem B)
         final_metrics = calculate_metrics(normalized_data)
         
         # 4. UI Dashboard Requests the Latest Metric (Problem G)
