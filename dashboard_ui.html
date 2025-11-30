@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CI Code Quality Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f9; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
+        h1 { color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px; }
+        .metric-card { border: 1px solid #ccc; padding: 15px; margin-bottom: 15px; border-radius: 6px; }
+        .metric-card.coverage { background-color: #e6f7ff; }
+        .metric-value { font-size: 3.5em; font-weight: bold; color: #007bff; }
+        .status-bar { padding: 10px; background-color: #28a745; color: white; text-align: center; border-radius: 4px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>📊 Live Code Coverage Dashboard</h1>
+        
+        <div id="status" class="status-bar">
+            Loading latest metrics...
+        </div>
+
+        <div id="metrics-output">
+            <p>Waiting for the first build data...</p>
+        </div>
+        
+        <p>Last updated: <span id="last-updated">N/A</span></p>
+        <button onclick="fetchMetrics()">Refresh Metrics</button>
+    </div>
+
+    <script>
+        // URL matches the new, simplified endpoint in dashboard_api.py
+        const API_URL = 'http://localhost:5002/api/build-summary'; 
+        
+        const metricsOutput = document.getElementById('metrics-output');
+        const statusBar = document.getElementById('status');
+        const lastUpdated = document.getElementById('last-updated');
+        
+        const COVERAGE_KEY = 'line_code_coverage'; 
+
+        function fetchMetrics() {
+            statusBar.textContent = 'Fetching data...';
+            
+            fetch(API_URL)
+                .then(response => {
+                    if (response.status === 404) {
+                        // Handle the case where the DB is empty (404 from API)
+                        statusBar.style.backgroundColor = '#ffc107';
+                        statusBar.textContent = `No data available (Pipeline not run yet).`;
+                        metricsOutput.innerHTML = '<p>Please trigger a build by modifying and saving ci_run_data.json.</p>';
+                        return Promise.reject("No data");
+                    }
+                    if (!response.ok) {
+                        // Handle other network/server errors
+                        statusBar.style.backgroundColor = '#dc3545';
+                        statusBar.textContent = `API Error: ${response.statusText}`;
+                        metricsOutput.innerHTML = '<p>Ensure the Dashboard API is running on port 5002.</p>';
+                        return Promise.reject(response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const metrics = data.metrics;
+                    const coverage = metrics[COVERAGE_KEY]; 
+
+                    if (!coverage) {
+                         statusBar.style.backgroundColor = '#ffc107';
+                         statusBar.textContent = `Error: Metric key '${COVERAGE_KEY}' not found in payload.`;
+                         return;
+                    }
+
+                    statusBar.style.backgroundColor = '#28a745';
+                    statusBar.textContent = `Build ${data.build_id} - Data Ready!`;
+
+                    let html = `
+                        <div class="metric-card coverage">
+                            <h2>${coverage.description || 'Code Coverage'}</h2>
+                            <div class="metric-value">${coverage.value.toFixed(2)}${coverage.unit === 'percentage' ? '%' : ''}</div>
+                        </div>
+                    `;
+                    
+                    metricsOutput.innerHTML = html;
+                    lastUpdated.textContent = new Date(data.timestamp).toLocaleString();
+                })
+                .catch(error => {
+                    if (error !== "No data") {
+                        console.error('Fetch error:', error);
+                    }
+                });
+        }
+
+        fetchMetrics();
+        // Set a 10-second polling interval
+        setInterval(fetchMetrics, 10000); 
+    </script>
+
+</body>
+</html>

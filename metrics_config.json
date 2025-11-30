@@ -6,7 +6,7 @@
             "description": "Percentage of total executable lines covered by tests."
         },
         "pipeline_duration_s": {
-            "formula": "pipelineDurationMs / 1000",
+            "formula": "pipeline_duration_s",
             "unit": "seconds"
         }
     }

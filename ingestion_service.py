@@ -1,73 +1,62 @@
+import redis
 import json
-from flask import Flask, request, jsonify 
-from tenacity import retry, stop_after_attempt, wait_exponential
+import sys
+import os
+from flask import Flask, request, jsonify
 
-# --- SIMULATED INFRASTRUCTURE ---
-# Simulates the Message Queue (Kafka/RabbitMQ)
-RAW_QUEUE = []
+# --- Configuration (Shared Globals) ---
+REDIS_HOST = 'localhost'
+REDIS_PORT = 6379
+REDIS_QUEUE = 'ci_data_queue'
+# --------------------------------------
 
-# --- Resilience Logic Setup ---
-# Global counter used to simulate a transient network failure on the first attempt
-ATTEMPT_COUNTER = 0 
+# --- Redis Setup ---
+try:
+    r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=0)
+    r.ping()
+    print("✅ Redis connection established successfully.")
+except Exception as e:
+    print(f"❌ Redis connection failed: {e}")
 
-app = Flask(__name__) # Initialize the Flask app
-
-# Solves Problem F: Resilience (Retry Policy)
-@retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
-def push_to_queue(data):
-    """Simulates pushing raw data to the Message Queue/Broker with retries."""
-    global ATTEMPT_COUNTER
-    ATTEMPT_COUNTER += 1
-    
-    # Simulate a transient network error on the first attempt
-    if ATTEMPT_COUNTER <= 1: 
-        print(f"  [INGESTION F] SIMULATING QUEUE FAILURE (Attempt {ATTEMPT_COUNTER}/3, RETRYING...)")
-        raise ConnectionError("Queue connection failed temporarily.")
-    
-    # Success path: Push data to the queue
-    RAW_QUEUE.append(data)
-    print(f"  [INGESTION OK] Pushed build {data['buildNumber']} to queue. Queue size: {len(RAW_QUEUE)}")
-    return True
-
-# ======================================================================
-# API ENDPOINT DEFINITION
-# ======================================================================
+app = Flask(__name__)
 
 @app.route('/webhook/ci', methods=['POST'])
-def handle_webhook():
+def ci_webhook():
     """
-    Handles incoming CI webhooks (POST requests), validates data, and pushes to the queue.
-    The raw data comes from the HTTP request body (request.json).
+    Accepts incoming CI/CD run data and queues it to Redis.
     """
-    
-    print("\n--- 1. INGESTION API (RECEIVE) ---")
-    
-    # 1. Input Validation and Security Check
-    if not request.json:
-        return jsonify({"status": "error", "message": "Missing JSON payload"}), 400
-    
-    raw_data = request.json
-    
-    if 'buildNumber' not in raw_data:
-        return jsonify({"status": "error", "message": "Missing build number in payload"}), 400
+    if not request.is_json:
+        return jsonify({"status": "error", "message": "Content-Type must be application/json"}), 400
 
-    # 2. Push message to Queue (Resilient step)
+    raw_data = request.get_json()
+    
+    build_id = raw_data.get('build_id') or raw_data.get('buildNumber')
+    if not build_id:
+        return jsonify({"status": "error", "message": "Missing required field: build_id or buildNumber"}), 400
+
+    raw_data['build_id'] = str(build_id)
+    
     try:
-        # The data is validated and pushed for asynchronous processing
-        push_to_queue(raw_data)
+        data_json = json.dumps(raw_data)
+        r.lpush(REDIS_QUEUE, data_json)
         
-        # Solves Problem G: FAST response (API returns immediately)
-        return jsonify({"status": "success", "message": "Data accepted and queued for processing"}), 202
-        
-    except Exception as e:
-        print(f"  [INGESTION ERROR] Failed after all retries: {e}")
-        # Return a 500 status code to the CI system upon complete failure
-        return jsonify({"status": "error", "message": "Queue Push failed after retries"}), 500
+        print(f"\n[INGESTION OK] Received build {raw_data['build_id']} and queued to Redis.")
+        return jsonify({"status": "success", "message": "Data queued successfully", "build_id": raw_data['build_id']}), 200 
 
-# Function to run the Flask app 
-def run_ingestion_api():
-    print(f"\n--- Running Ingestion API on http://127.0.0.1:5000/webhook/ci ---")
-    app.run(debug=False, port=5000)
+    except redis.exceptions.ConnectionError:
+        print("❌ Redis connection lost during push.")
+        return jsonify({"status": "error", "message": "Redis service unavailable"}), 503
+    except Exception as e:
+        print(f"❌ An unexpected error occurred during ingestion: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 if __name__ == '__main__':
-    run_ingestion_api()
+    print(f"\n--- Running Ingestion API on http://127.0.0.1:5000/webhook/ci ---")
+    try:
+        app.run(debug=False, port=5000)
+    except OSError as e:
+        if "Address already in use" in str(e):
+            print(f"FATAL ERROR: Port 5000 is already in use. Terminating Ingestion service.")
+            sys.exit(1)
+        else:
+            raise

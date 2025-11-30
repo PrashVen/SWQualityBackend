@@ -4,7 +4,7 @@ RAW_DB = {} # Simulates InfluxDB/Raw Metrics Storage
 def normalize_data(raw_data):
     """
     Implements the Adapter Pattern for normalization.
-    Cleans raw code coverage data and maps it to the internal schema (Problem D).
+    Cleans raw code coverage data and maps it to the internal schema.
     """
     
     print(f"  [NORMALIZE] Processing build {raw_data['buildNumber']}...")
@@ -15,10 +15,8 @@ def normalize_data(raw_data):
         "build_id": raw_data['buildNumber'],
         "timestamp": raw_data['startTime'],
         
-        # Standardize units: ms -> seconds
         "pipeline_duration_s": raw_data['pipelineDurationMs'] / 1000,
         
-        # Normalize Coverage Fields: Extract the counts needed for aggregation
         "covered_lines": raw_data.get('covered_lines', 0),
         "total_lines": raw_data.get('total_lines', 0),
         "coverage_threshold_passed": raw_data.get('coverageThresholdPassed', False)
@@ -29,16 +27,20 @@ def normalize_data(raw_data):
     print(f"  [NORMALIZE OK] Stored normalized line-count data for build {normalized['build_id']}.")
     return normalized
 
-def run_normalization(RAW_QUEUE):
-    """Simulates the background worker consuming the message queue."""
+# ----------------------------------------------------------------------
+# UPDATED WORKER FUNCTION: It now receives the 'raw_data' (the job) directly, 
+# as the queue consuming is handled by worker_processor.py (using Redis).
+# ----------------------------------------------------------------------
+def run_normalization(raw_data): 
+    """Worker function that processes the received job."""
     print("\n--- 2. NORMALIZATION SERVICE (WORKER) ---")
-    if not RAW_QUEUE:
-        print("  [NORMALIZE] Queue is empty.")
+    
+    # If raw_data is None, it means the queue was empty.
+    if raw_data is None: 
         return None
     
-    raw_data = RAW_QUEUE.pop(0) # Consume the message
+    # Since we already have the data, we just pass it to the processing function.
     return normalize_data(raw_data)
 
 if __name__ == '__main__':
-    # This file needs the queue and raw data from ingestion_api to run independently
-    print("Run the main `backend_execution.py` script to see the full flow.")
+    print("Run the main execution flow via the worker processor for testing.")
