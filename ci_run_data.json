@@ -1,10 +1,10 @@
 {
     "jobId": "proj-auth-001",
-    "buildNumber": 45,
+    "buildNumber": 50,
     "startTime": 1709280000,
     "pipelineDurationMs": 155000,
     "reportVersion": "SQ-5.1",
-    "covered_lines": 850,
+    "covered_lines": 700,
     "total_lines": 1000,
     "coverageThresholdPassed": true
 }

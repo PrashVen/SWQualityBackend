@@ -1,0 +1,86 @@
+✅ Redis connection established successfully.
+
+--- Running Ingestion API on http://127.0.0.1:5000/webhook/ci ---
+ * Serving Flask app 'ingestion_service'
+ * Debug mode: off
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[33mPress CTRL+C to quit[0m
+✅ Redis connection established successfully.
+
+--- Running Ingestion API on http://127.0.0.1:5000/webhook/ci ---
+ * Serving Flask app 'ingestion_service'
+ * Debug mode: off
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[33mPress CTRL+C to quit[0m
+127.0.0.1 - - [30/Nov/2025 02:58:19] "POST /webhook/ci HTTP/1.1" 200 -
+127.0.0.1 - - [30/Nov/2025 02:58:19] "POST /webhook/ci HTTP/1.1" 200 -
+127.0.0.1 - - [30/Nov/2025 02:58:19] "POST /webhook/ci HTTP/1.1" 200 -
+127.0.0.1 - - [30/Nov/2025 02:58:20] "POST /webhook/ci HTTP/1.1" 200 -
+127.0.0.1 - - [30/Nov/2025 02:58:20] "POST /webhook/ci HTTP/1.1" 200 -
+127.0.0.1 - - [30/Nov/2025 02:58:20] "POST /webhook/ci HTTP/1.1" 200 -
+✅ Redis connection established successfully.
+
+--- Running Ingestion API on http://127.0.0.1:5000/webhook/ci ---
+ * Serving Flask app 'ingestion_service'
+ * Debug mode: off
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[33mPress CTRL+C to quit[0m
+127.0.0.1 - - [30/Nov/2025 03:04:06] "POST /webhook/ci HTTP/1.1" 200 -
+127.0.0.1 - - [30/Nov/2025 03:04:06] "POST /webhook/ci HTTP/1.1" 200 -
+127.0.0.1 - - [30/Nov/2025 03:04:06] "POST /webhook/ci HTTP/1.1" 200 -
+127.0.0.1 - - [30/Nov/2025 03:04:08] "POST /webhook/ci HTTP/1.1" 200 -
+127.0.0.1 - - [30/Nov/2025 03:04:08] "POST /webhook/ci HTTP/1.1" 200 -
+127.0.0.1 - - [30/Nov/2025 03:04:08] "POST /webhook/ci HTTP/1.1" 200 -
+✅ Redis connection established successfully.
+
+--- Running Ingestion API on http://127.0.0.1:5000/webhook/ci ---
+ * Serving Flask app 'ingestion_service'
+ * Debug mode: off
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[33mPress CTRL+C to quit[0m
+✅ Redis connection established successfully.
+
+--- Running Ingestion API on http://127.0.0.1:5000/webhook/ci ---
+ * Serving Flask app 'ingestion_service'
+ * Debug mode: off
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[33mPress CTRL+C to quit[0m
+127.0.0.1 - - [30/Nov/2025 03:20:39] "POST /webhook/ci HTTP/1.1" 200 -
+127.0.0.1 - - [30/Nov/2025 03:20:39] "POST /webhook/ci HTTP/1.1" 200 -
+127.0.0.1 - - [30/Nov/2025 03:20:39] "POST /webhook/ci HTTP/1.1" 200 -
+✅ Redis connection established successfully.
+
+--- Running Ingestion API on http://127.0.0.1:5000/webhook/ci ---
+ * Serving Flask app 'ingestion_service'
+ * Debug mode: off
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[33mPress CTRL+C to quit[0m
+127.0.0.1 - - [30/Nov/2025 07:39:02] "POST /webhook/ci HTTP/1.1" 200 -
+127.0.0.1 - - [30/Nov/2025 07:39:02] "POST /webhook/ci HTTP/1.1" 200 -
+127.0.0.1 - - [30/Nov/2025 07:39:02] "POST /webhook/ci HTTP/1.1" 200 -
+✅ Redis connection established successfully.
+
+--- Running Ingestion API on http://127.0.0.1:5000/webhook/ci ---
+ * Serving Flask app 'ingestion_service'
+ * Debug mode: off
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[33mPress CTRL+C to quit[0m
+127.0.0.1 - - [30/Nov/2025 07:55:09] "POST /webhook/ci HTTP/1.1" 200 -
+127.0.0.1 - - [30/Nov/2025 07:55:09] "POST /webhook/ci HTTP/1.1" 200 -
+127.0.0.1 - - [30/Nov/2025 07:55:09] "POST /webhook/ci HTTP/1.1" 200 -
+127.0.0.1 - - [30/Nov/2025 07:56:29] "POST /webhook/ci HTTP/1.1" 200 -
+127.0.0.1 - - [30/Nov/2025 07:56:29] "POST /webhook/ci HTTP/1.1" 200 -
+127.0.0.1 - - [30/Nov/2025 07:56:29] "POST /webhook/ci HTTP/1.1" 200 -
+127.0.0.1 - - [30/Nov/2025 07:56:42] "POST /webhook/ci HTTP/1.1" 200 -
+127.0.0.1 - - [30/Nov/2025 07:56:42] "POST /webhook/ci HTTP/1.1" 200 -
+127.0.0.1 - - [30/Nov/2025 07:56:42] "POST /webhook/ci HTTP/1.1" 200 -
+127.0.0.1 - - [30/Nov/2025 07:56:45] "POST /webhook/ci HTTP/1.1" 200 -
+127.0.0.1 - - [30/Nov/2025 07:56:45] "POST /webhook/ci HTTP/1.1" 200 -
+127.0.0.1 - - [30/Nov/2025 07:56:45] "POST /webhook/ci HTTP/1.1" 200 -

@@ -1,0 +1,12 @@
+✅ Redis connection established successfully.
+[DASHBOARD API] Successfully connected to Redis at localhost:6379 (DB 1)
+[WORKER] Warning: Could not import REDIS_KEY from dashboard_api. Using default: build_summary
+✅ Redis connection established successfully.
+✅ Redis connection established successfully.
+[DASHBOARD API] Successfully connected to Redis at localhost:6379 (DB 1)
+[WORKER] Warning: Could not import REDIS_KEY from dashboard_api. Using default: build_summary
+✅ Redis connection established successfully.
+✅ Redis connection established successfully.
+[DASHBOARD API] Successfully connected to Redis at localhost:6379 (DB 1)
+[WORKER] Warning: Could not import REDIS_KEY from dashboard_api. Using default: build_summary
+✅ Redis connection established successfully.
