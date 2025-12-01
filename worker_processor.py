@@ -7,7 +7,7 @@ from aggregation_service import aggregate_metrics
 # Import Redis connection details from the ingestion service config
 from ingestion_service import REDIS_HOST, REDIS_PORT, REDIS_QUEUE
 
-# IMPORTANT: Import the output key used by the Dashboard API
+# Import the output key used by the Dashboard API
 try:
     from dashboard_api import REDIS_KEY as SUMMARY_REDIS_KEY
 except ImportError:
@@ -20,9 +20,9 @@ try:
     # We use db=0 for both the queue (input) and the summary (output)
     r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=0)
     r.ping() 
-    print("✅ Redis connection established successfully.")
+    print("[WORKER] Redis connection established successfully.")
 except Exception as e:
-    print(f"❌ Redis connection failed: {e}")
+    print(f"[WORKER] Redis connection failed: {e}")
     # We allow the script to proceed here, as the loop handles reconnection attempts.
 
 def start_worker():
@@ -31,7 +31,7 @@ def start_worker():
     processing them, and saving the final summary to Redis.
     """
     print("=====================================================================")
-    print("🚀 STARTING WORKER PROCESSOR (Redis Consumer) 🚀")
+    print("  STARTING WORKER PROCESSOR (Redis Consumer)                         ")
     print("=====================================================================")
     print(f"Worker polling queue: {REDIS_QUEUE}. Saving results to key: {SUMMARY_REDIS_KEY}")
     print("Worker is now polling Redis continuously. (Press Ctrl+C to stop)")
@@ -69,12 +69,12 @@ def start_worker():
                 pass
                 
         except redis.exceptions.ConnectionError:
-            print("❌ Redis Connection Error. Retrying in 5 seconds.")
+            print("[WORKER] Redis Connection Error. Retrying in 5 seconds.")
             time.sleep(5)
         except json.JSONDecodeError as e:
-            print(f"❌ JSON Decode Error: {e}. Skipping message.")
+            print(f"[WORKER] JSON Decode Error: {e}. Skipping message.")
         except Exception as e:
-            print(f"❌ Worker Unhandled Error: {e}")
+            print(f"[WORKER] Worker Unhandled Error: {e}")
             time.sleep(1)
 
 if __name__ == '__main__':
@@ -82,7 +82,7 @@ if __name__ == '__main__':
         start_worker()
     except Exception as e:
         # Final catch block to log any exception that prevents the main loop from starting
-        print(f"❌ FATAL WORKER STARTUP ERROR: {e}")
+        print(f"[WORKER] FATAL WORKER STARTUP ERROR: {e}")
         # Print the full traceback to the log file for diagnosis
         traceback.print_exc()
         exit(1)

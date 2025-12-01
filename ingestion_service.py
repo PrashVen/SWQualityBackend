@@ -41,7 +41,7 @@ def init_redis(log_connection=False):
             print("[INGESTION SERVICE] Successfully connected to Redis at {}:{} (DB {})".format(REDIS_HOST, REDIS_PORT, REDIS_DB))
         return redis_client
     except redis_exceptions.ConnectionError as e:
-        print(f"❌ REDIS CONNECTION FAILED: Could not connect to Redis at {REDIS_HOST}:{REDIS_PORT}. Error: {e}")
+        print(f"[INGESTION SERVICE] REDIS CONNECTION FAILED: Could not connect to Redis at {REDIS_HOST}:{REDIS_PORT}. Error: {e}")
         return None
 
 @app.route('/webhook/ci', methods=['POST'])
@@ -57,7 +57,7 @@ def ci_webhook():
         data = request.get_json()
     except Exception as e:
         # If parsing fails, return 400 immediately.
-        print(f"\n[INGESTION ERROR] Error parsing JSON payload: {e}")
+        print(f"\n[INGESTION SERVICE] Error parsing JSON payload: {e}")
         return jsonify({"error": "Invalid JSON received"}), 400
     
     
@@ -80,20 +80,20 @@ def ci_webhook():
         # Queue the data as a JSON string
         json_data = json.dumps(data)
         redis_conn.lpush(REDIS_QUEUE, json_data) 
-        print(f"\n[INGESTION OK] Received build {data['build_id']} and queued to Redis.")
+        print(f"\n[INGESTION SERVICE] Received build {data['build_id']} and queued to Redis.")
         
         # Must return a successful response to the watcher
         return jsonify({"status": "success", "message": "Data queued successfully", "build_id": data['build_id']}), 200
 
     except redis_exceptions.RedisError as e:
         # Explicitly set redis_client to None on push failure 
-        print(f"❌ REDIS ERROR during LPUSH: {e}")
+        print(f"[INGESTION SERVICE] REDIS ERROR during LPUSH: {e}")
         global redis_client
         redis_client = None
         return jsonify({"status": "error", "message": "Internal server error during Redis operation. Redis client invalidated."}), 500
     except Exception as e:
         # Catch any other unhandled errors
-        print(f"❌ UNHANDLED EXCEPTION in webhook: {e}")
+        print(f"[INGESTION SERVICE] UNHANDLED EXCEPTION in webhook: {e}")
         return jsonify({"status": "error", "message": "Internal server error. Check logs."}), 500
 
 def signal_handler(sig, frame):
@@ -117,8 +117,8 @@ if __name__ == '__main__':
         app.run(host='127.0.0.1', port=INGESTION_PORT, debug=False)
     except OSError as e:
         if "Address already in use" in str(e):
-            print(f"FATAL ERROR: Port {INGESTION_PORT} is already in use. Terminating Ingestion service.")
+            print(f"[INGESTION SERVICE] FATAL ERROR: Port {INGESTION_PORT} is already in use. Terminating Ingestion service.")
             sys.exit(1)
         else:
-            print(f"An unexpected error occurred during Flask startup: {e}")
+            print(f"[INGESTION SERVICE] An unexpected error occurred during Flask startup: {e}")
             sys.exit(1) # Signal failure to the orchestrator

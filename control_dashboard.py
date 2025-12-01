@@ -16,7 +16,6 @@ SERVICES = {
     # API must start before Ingestion to avoid errors
     'dashboard_api': {'script': 'dashboard_api.py', 'port': 5002},
     # Ingestion API needs to be running to receive data from the watcher
-    # FIX: The logs show the ingestion service runs on port 5000, not 5003.
     'ingestion': {'script': 'ingestion_service.py', 'port': 5000}, 
     # Watcher starts last as it triggers the whole pipeline
     'watcher': {'script': 'ci_data_watcher.py', 'port': None}
@@ -47,13 +46,13 @@ def start_service(service_name):
             start_new_session=True 
         )
         PROCESSES[service_name] = process
-        print(f"✅ STARTED {service_name.upper()} (PID: {process.pid}) running script: {script}")
+        print(f"[ORCHESTRATOR] STARTED {service_name.upper()} (PID: {process.pid}) running script: {script}")
         return True
     except FileNotFoundError:
-        print(f"❌ ERROR: Python or script {script} not found.")
+        print(f"[ORCHESTRATOR] ERROR: Python or script {script} not found.")
         return False
     except Exception as e:
-        print(f"❌ ERROR starting {service_name}: {e}")
+        print(f"[ORCHESTRATOR] ERROR starting {service_name}: {e}")
         return False
 
 def stop_service(service_name):
@@ -65,7 +64,7 @@ def stop_service(service_name):
             os.kill(process.pid, signal.SIGTERM)
             process.wait(timeout=5) # Wait for the process to terminate
             del PROCESSES[service_name]
-            print(f"🛑 STOPPED {service_name.upper()} (PID: {process.pid})")
+            print(f"[ORCHESTRATOR] STOPPED {service_name.upper()} (PID: {process.pid})")
             return True
         except ProcessLookupError:
             # Process was already gone
@@ -73,7 +72,7 @@ def stop_service(service_name):
                 del PROCESSES[service_name]
             return True
         except Exception as e:
-            print(f"❌ ERROR stopping {service_name}: {e}")
+            print(f"ERROR stopping {service_name}: {e}")
             return False
     
     # Clean up if process object exists but has stopped
@@ -102,7 +101,7 @@ if __name__ == '__main__':
     atexit.register(cleanup_all)
     
     print("=====================================================")
-    print("🚀 CI/CD PIPELINE ORCHESTRATOR (Command Line Mode) 🚀")
+    print(" CI/CD PIPELINE ORCHESTRATOR (Command Line Mode)     ")
     print("=====================================================")
     
     print("\n--- Starting Full Pipeline Sequentially ---")
@@ -115,9 +114,9 @@ if __name__ == '__main__':
             time.sleep(1.5)
 
     print("\n-----------------------------------------------------")
-    print(f"Pipeline is RUNNING. Check data at http://127.0.0.1:{SERVICES['dashboard_api']['port']}/api/build-summary")
-    print("Press Ctrl+C to stop all services gracefully.")
-    print("-----------------------------------------------------")
+    print(f"Pipeline is RUNNING.                                  ")
+    print("Press Ctrl+C to stop all services gracefully.          ")
+    print("-------------------------------------------------------")
 
     try:
         # Keep the main process alive indefinitely until interrupted (Ctrl+C)

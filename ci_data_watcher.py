@@ -4,7 +4,6 @@ import json
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-# FIX 1: Corrected port from 5003 to 5000 to match ingestion_service.py
 WEBHOOK_URL = "http://127.0.0.1:5000/webhook/ci" 
 TARGET_FILE = "ci_run_data.json"
 
@@ -66,26 +65,25 @@ class StableFileHandler(FileSystemEventHandler):
         _last_hash = stable_hash
         _last_trigger = time.time()
 
-        print(f"[WATCHER PID {os.getpid()}] Detected real change — posting to webhook...")
+        print(f"[WATCHER] Detected real change — posting to webhook...")
         try:
-            # FIX 2: Read the actual JSON content and post it, instead of posting the filename.
             with open(TARGET_FILE, 'r') as f:
                 data_to_post = json.load(f)
                 
             resp = requests.post(WEBHOOK_URL, json=data_to_post, timeout=5)
             
             # The ingestion service should now correctly read build_id/buildNumber
-            print(f"[WATCHER OK] Webhook status: {resp.status_code}")
+            print(f"[WATCHER] Webhook status: {resp.status_code}")
             
         except requests.exceptions.ConnectionError:
             # Log connection error more clearly
-            print(f"Webhook error: Connection Refused. Check if {WEBHOOK_URL} is running.")
+            print(f"[WATCHER] Webhook error: Connection Refused. Check if {WEBHOOK_URL} is running.")
         except json.JSONDecodeError:
             # Log if the file is invalid JSON (e.g., empty or corrupted)
-            print(f"Webhook error: Could not decode JSON from {TARGET_FILE}. Skipping post.")
+            print(f"[WATCHER] Webhook error: Could not decode JSON from {TARGET_FILE}. Skipping post.")
         except Exception as e:
             # Catch other unexpected errors
-            print("Webhook error:", e)
+            print("[WATCHER] Webhook error:", e)
 
 
 if __name__ == "__main__":
@@ -93,22 +91,21 @@ if __name__ == "__main__":
     obs = Observer()
     obs.schedule(handler, ".", recursive=False)
     obs.start()
-    print(f"[WATCHER START] PID {os.getpid()}, watching {os.getcwd()}/{TARGET_FILE}")
+    print(f"[WATCHER] PID {os.getpid()}, watching {os.getcwd()}/{TARGET_FILE}")
     
     # Initialize hash by checking the file once on startup (Simulated)
     initial_hash = handler.compute_hash(TARGET_FILE)
     if initial_hash:
         _last_hash = initial_hash
-        print("[WATCHER PID 54678] Initial state loaded.")
+        print("[WATCHER] Initial state loaded.")
         # Attempt to post the initial data to ensure the pipeline is initialized
         try:
             with open(TARGET_FILE, 'r') as f:
                 data_to_post = json.load(f)
             resp = requests.post(WEBHOOK_URL, json=data_to_post, timeout=5)
-            print(f"[WATCHER OK] Initial data loaded. Posting to webhook. Status: {resp.status_code}")
+            print(f"[WATCHER] Initial data loaded. Posting to webhook. Status: {resp.status_code}")
         except Exception as e:
-            print(f"Initial webhook post failed: {e}")
-
+            print(f"[WATCHER] Initial webhook post failed: {e}")
 
     try:
         while True:

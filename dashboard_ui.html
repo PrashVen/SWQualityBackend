@@ -2,99 +2,353 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>CI Code Quality Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SW Quality Management Dashboard</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f9; padding: 20px; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
-        h1 { color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px; }
-        .metric-card { border: 1px solid #ccc; padding: 15px; margin-bottom: 15px; border-radius: 6px; }
-        .metric-card.coverage { background-color: #e6f7ff; }
-        .metric-value { font-size: 3.5em; font-weight: bold; color: #007bff; }
-        .status-bar { padding: 10px; background-color: #28a745; color: white; text-align: center; border-radius: 4px; margin-bottom: 20px; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --bg-dark: #121212;
+            --bg-medium: #1e1e1e;
+            --bg-light: #2c2c2c;
+            --text-light: #f0f0f0;
+            --text-muted: #aaaaaa;
+            --primary-red: rgb(183, 0, 50); /* Updated to RGB 183,0,50 */
+            --border-color: #333333;
+            --spacing: 16px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center; /* Center horizontally */
+            align-items: center;   /* Center vertically (for empty/small content) */
+            overflow-y: auto; /* Allow scrolling if content is tall */
+            padding-top: 50px; /* Space from the top */
+            padding-bottom: 50px;
+        }
+
+        /* Main Content Area */
+        .dashboard-container {
+            max-width: 900px;
+            width: 90%;
+            padding: var(--spacing) * 2;
+            background-color: var(--bg-medium);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+        
+        /* Simplified Header (Title and Refresh Button) */
+        .simple-header {
+            display: flex;
+            justify-content: space-between; /* Separates the header titles and the button */
+            align-items: center;
+            margin-bottom: var(--spacing) * 2;
+            padding-bottom: var(--spacing);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .header-titles {
+            text-align: left;
+            /* ALIGNMENT FIX: Added padding-left to move titles inward */
+            padding-left: var(--spacing); 
+            /* UPDATED ALIGNMENT FIX: Increased margin-top to better center the text block vertically */
+            margin-top: 12px;
+        }
+
+        .header-titles h1 {
+            margin: 0;
+            font-size: 1.8em;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+        
+        .subtitle-coverage {
+            margin: 0;
+            font-size: 1.2em; /* Smaller than main title */
+            font-weight: 400; 
+            color: var(--text-muted); /* Muted color */
+            margin-top: 5px;
+            padding-left: 0;
+        }
+        
+        .btn {
+            background-color: var(--primary-red);
+            color: var(--text-light);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s ease, transform 0.1s;
+            /* ALIGNMENT FIX: Added margin-right to pull the button slightly away from the right edge */
+            margin-right: var(--spacing); 
+        }
+
+        .btn:hover {
+            background-color: rgb(200, 0, 60); 
+        }
+        
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Message Box (Loading/Error/No Data) */
+        .message-box {
+            background-color: var(--bg-light);
+            padding: var(--spacing) * 2;
+            border-radius: 8px;
+            text-align: center;
+            min-width: 300px;
+            border: 1px solid var(--border-color);
+        }
+
+        .message-box h2 {
+            font-size: 1.5em;
+            margin-top: 0;
+            color: var(--primary-red);
+        }
+
+        .message-box p {
+            color: var(--text-muted);
+            font-size: 1em;
+            line-height: 1.5;
+        }
+
+        /* Vector Symbol Styling (for messages) */
+        .vector-symbol-message {
+            width: 80px;
+            height: auto;
+            margin-bottom: var(--spacing);
+            fill: var(--primary-red); 
+            transition: fill 0.3s;
+        }
+
+        /* Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--spacing);
+            width: 100%;
+            margin-top: var(--spacing);
+        }
+
+        .metric-card {
+            background-color: var(--bg-light);
+            border-radius: 8px;
+            padding: var(--spacing);
+            text-align: left;
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary-red);
+        }
+
+        .metric-card h3 {
+            margin-top: 0;
+            color: var(--primary-red);
+            font-size: 1em;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .metric-card .value {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: 4px;
+        }
+        
+        /* New class for making the unit symbol smaller */
+        .metric-card .value .unit-small {
+            font-size: 0.5em; /* Significantly smaller than the main value */
+            font-weight: 400;
+            vertical-align: super;
+            margin-left: 2px;
+            color: var(--text-muted);
+        }
+
+        .metric-card .unit {
+            font-size: 0.9em;
+            color: var(--text-muted);
+        }
+
+        .metric-card .description {
+            font-size: 0.8em;
+            color: var(--text-muted);
+            margin-top: 10px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 10px;
+            opacity: 0.7;
+        }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>📊 Live Code Coverage Dashboard</h1>
+    <div class="dashboard-container">
         
-        <div id="status" class="status-bar">
-            Loading latest metrics...
+        <div class="simple-header">
+            <div class="header-titles">
+                <h1>
+                    SW Quality Management Dashboard
+                </h1>
+                <div class="subtitle-coverage">Code Coverage</div>
+            </div>
+            <button class="btn" id="refreshButton">Refresh Metrics</button>
         </div>
 
-        <div id="metrics-output">
-            <p>Waiting for the first build data...</p>
+        <div id="statusMessage" class="message-box">
+            <!-- Initial message when no data is loaded -->
+            <svg class="vector-symbol-message" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5 2L19 12L5 22L5 2Z" fill="currentColor"/>
+            </svg>
+            <h2>Loading latest metrics...</h2>
+            <p>Please wait while we fetch the latest build summary from the Dashboard API.</p>
         </div>
-        
-        <p>Last updated: <span id="last-updated">N/A</span></p>
-        <button onclick="fetchMetrics()">Refresh Metrics</button>
+
+        <div id="metricsDisplay" class="metrics-grid" style="display: none;">
+            <!-- Metrics will be dynamically inserted here -->
+        </div>
     </div>
 
     <script>
-        // URL matches the new, simplified endpoint in dashboard_api.py
-        const API_URL = 'http://localhost:5002/api/build-summary'; 
-        
-        const metricsOutput = document.getElementById('metrics-output');
-        const statusBar = document.getElementById('status');
-        const lastUpdated = document.getElementById('last-updated');
-        
-        const COVERAGE_KEY = 'line_code_coverage'; 
+        const API_URL = 'http://127.0.0.1:5002/api/build-summary';
+        const statusMessageDiv = document.getElementById('statusMessage');
+        const metricsDisplayDiv = document.getElementById('metricsDisplay');
+        const refreshButton = document.getElementById('refreshButton');
 
-        function fetchMetrics() {
-            statusBar.textContent = 'Fetching data...';
-            
-            fetch(API_URL)
-                .then(response => {
-                    if (response.status === 404) {
-                        // Handle the case where the DB is empty (404 from API)
-                        statusBar.style.backgroundColor = '#ffc107';
-                        statusBar.textContent = `No data available (Pipeline not run yet).`;
-                        metricsOutput.innerHTML = '<p>Please trigger a build by modifying and saving ci_run_data.json.</p>';
-                        return Promise.reject("No data");
+        async function fetchBuildSummary() {
+            try {
+                // Show loading state
+                statusMessageDiv.style.display = 'block';
+                statusMessageDiv.innerHTML = `
+                    <svg class="vector-symbol-message" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5 2L19 12L5 22L5 2Z" fill="currentColor"/>
+                    </svg>
+                    <h2>Loading latest metrics...</h2>
+                    <p>Please wait while we fetch the latest build summary from the Dashboard API.</p>
+                `;
+                metricsDisplayDiv.style.display = 'none';
+
+                const response = await fetch(API_URL);
+                const data = await response.json();
+
+                if (response.ok) {
+                    if (data.message) {
+                        // No data available yet
+                        statusMessageDiv.innerHTML = `
+                            <svg class="vector-symbol-message" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M5 2L19 12L5 22L5 2Z" fill="currentColor"/>
+                            </svg>
+                            <h2 style="color: var(--text-light);">No Build Data Yet</h2>
+                            <p>${data.message}</p>
+                            <p>Once a CI/CD run completes, its metrics will appear here.</p>
+                        `;
+                        metricsDisplayDiv.style.display = 'none';
+                    } else {
+                        // Data successfully loaded
+                        statusMessageDiv.style.display = 'none';
+                        metricsDisplayDiv.style.display = 'grid';
+                        renderMetrics(data);
                     }
-                    if (!response.ok) {
-                        // Handle other network/server errors
-                        statusBar.style.backgroundColor = '#dc3545';
-                        statusBar.textContent = `API Error: ${response.statusText}`;
-                        metricsOutput.innerHTML = '<p>Ensure the Dashboard API is running on port 5002.</p>';
-                        return Promise.reject(response.statusText);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    const metrics = data.metrics;
-                    const coverage = metrics[COVERAGE_KEY]; 
-
-                    if (!coverage) {
-                         statusBar.style.backgroundColor = '#ffc107';
-                         statusBar.textContent = `Error: Metric key '${COVERAGE_KEY}' not found in payload.`;
-                         return;
-                    }
-
-                    statusBar.style.backgroundColor = '#28a745';
-                    statusBar.textContent = `Build ${data.build_id} - Data Ready!`;
-
-                    let html = `
-                        <div class="metric-card coverage">
-                            <h2>${coverage.description || 'Code Coverage'}</h2>
-                            <div class="metric-value">${coverage.value.toFixed(2)}${coverage.unit === 'percentage' ? '%' : ''}</div>
-                        </div>
+                } else {
+                    // API returned an error (e.g., 500 from server)
+                    statusMessageDiv.innerHTML = `
+                        <svg class="vector-symbol-message" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M5 2L19 12L5 22L5 2Z" fill="currentColor"/>
+                        </svg>
+                        <h2 style="color: var(--primary-red);">Error Loading Data</h2>
+                        <p>${data.error || 'An unknown error occurred.'}</p>
+                        <p>Please check the backend services are running correctly.</p>
                     `;
-                    
-                    metricsOutput.innerHTML = html;
-                    lastUpdated.textContent = new Date(data.timestamp).toLocaleString();
-                })
-                .catch(error => {
-                    if (error !== "No data") {
-                        console.error('Fetch error:', error);
-                    }
-                });
+                    metricsDisplayDiv.style.display = 'none';
+                }
+            } catch (error) {
+                console.error("Failed to fetch build summary:", error);
+                statusMessageDiv.innerHTML = `
+                    <svg class="vector-symbol-message" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5 2L19 12L5 22L5 2Z" fill="currentColor"/>
+                    </svg>
+                    <h2 style="color: var(--primary-red);">Connection Error</h2>
+                    <p>Could not connect to the Dashboard API at ${API_URL}.</p>
+                    <p style="font-weight: 600;">Ensure <code>dashboard_api.py</code> is running and accessible (Port 5002).</p>
+                `;
+                metricsDisplayDiv.style.display = 'none';
+            }
         }
 
-        fetchMetrics();
-        // Set a 10-second polling interval
-        setInterval(fetchMetrics, 10000); 
-    </script>
+        function renderMetrics(data) {
+            metricsDisplayDiv.innerHTML = ''; // Clear previous metrics
 
+            // 1. Build Info Card
+            const buildInfoCard = `
+                <div class="metric-card">
+                    <h3>Build ID</h3>
+                    <div class="value">${data.build_id || 'N/A'}</div>
+                    <div class="unit">Completed: ${new Date(data.timestamp * 1000).toLocaleString()}</div>
+                    <div class="description">Identifier and completion time of the latest build.</div>
+                </div>
+            `;
+            metricsDisplayDiv.innerHTML += buildInfoCard;
+
+
+            // 2. Dynamically create cards for calculated metrics
+            for (const key in data.metrics) {
+                if (data.metrics.hasOwnProperty(key)) {
+                    const metric = data.metrics[key];
+                    
+                    // Clean up key name for display (Capitalize words, replace underscore with space)
+                    const displayKeyRaw = key.replace(/_/g, ' ')
+                                         .split(' ')
+                                         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                                         .join(' ');
+                                         
+                    let finalDisplayKey = displayKeyRaw;
+                    let valueDisplay = metric.value;
+                    let unitDisplay = metric.unit;
+
+                    // A. Special case: Ensure Pipeline Duration is displayed correctly
+                    if (key === 'pipeline_duration_s') {
+                        finalDisplayKey = 'Pipeline Duration';
+                    }
+
+                    // B. Handle Percentage Symbol and Size
+                    if (key === 'line_code_coverage' && metric.unit === 'percentage') {
+                        // Use the new CSS class 'unit-small' for the '%' symbol
+                        valueDisplay = `${metric.value}<span class="unit-small">%</span>`;
+                        unitDisplay = ''; // Remove unit if percentage symbol is added
+                    }
+
+                    const card = `
+                        <div class="metric-card">
+                            <h3>${finalDisplayKey}</h3>
+                            <div class="value">${valueDisplay}</div>
+                            <div class="unit">${unitDisplay}</div>
+                            <div class="description">${metric.description}</div>
+                        </div>
+                    `;
+                    metricsDisplayDiv.innerHTML += card;
+                }
+            }
+        }
+
+        // Fetch data on page load
+        document.addEventListener('DOMContentLoaded', fetchBuildSummary);
+        
+        // Refresh button click handler
+        refreshButton.addEventListener('click', fetchBuildSummary);
+
+        // Periodically refresh data every 10 seconds
+        setInterval(fetchBuildSummary, 10000); // 10 seconds
+    </script>
 </body>
 </html>
